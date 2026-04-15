@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>英語ジャーナル v2.0</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0a16">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a16;--bg2:rgba(17,17,40,.75);--bg3:rgba(26,26,62,.6);
+  --glass:rgba(255,255,255,.04);--glass-border:rgba(255,255,255,.08);
+  --accent:#74b9ff;--accent2:#a29bfe;--accent3:#55efc4;
+  --text:#e0e0f0;--text2:#8888aa;--danger:#ff7675;--warn:#ffeaa7;
+  --radius:14px;--shadow:0 8px 32px rgba(0,0,0,.4);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;font-family:'Segoe UI','Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);color:var(--text)}
+body{display:flex;flex-direction:column;min-height:100dvh;overflow:hidden}
+
+/* ── Animated Background ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;
+  background:
+    radial-gradient(ellipse 600px 400px at 20% 20%, rgba(116,185,255,.08), transparent),
+    radial-gradient(ellipse 500px 500px at 80% 80%, rgba(162,155,254,.06), transparent),
+    radial-gradient(ellipse 400px 300px at 50% 50%, rgba(85,239,196,.04), transparent);
+  animation:bgShift 20s ease-in-out infinite alternate;
+}
+@keyframes bgShift{
+  0%{opacity:.8}50%{opacity:1}100%{opacity:.8}
+}
+
+/* ── Header ── */
+.header{
+  background:var(--bg2);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--glass-border);
+  padding:12px 16px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+  padding-top:max(12px, env(safe-area-inset-top));
+}
+.header h1{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header-right{display:flex;gap:8px;align-items:center}
+.header-date{font-size:.75rem;color:var(--text2)}
+.header-btn{background:none;border:none;color:var(--accent);font-size:16px;cursor:pointer;padding:4px;border-radius:6px;transition:.2s}
+.header-btn:hover{background:var(--glass)}
+.header-btn:active{transform:scale(.92)}
+
+/* ── Nav (Bottom on mobile) ── */
+.nav{
+  display:flex;gap:4px;padding:8px 12px;
+  background:var(--bg2);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--glass-border);
+  overflow-x:auto;flex-shrink:0;
+  scrollbar-width:none;
+}
+.nav::-webkit-scrollbar{display:none}
+.nav button{
+  flex-shrink:0;padding:8px 14px;border:none;border-radius:var(--radius);
+  background:transparent;color:var(--text2);font-size:.8rem;cursor:pointer;
+  transition:all .2s ease;white-space:nowrap;position:relative;
+}
+.nav button.active{background:var(--glass);color:var(--accent);font-weight:600;border:1px solid var(--glass-border)}
+.nav button:hover{color:var(--text)}
+.nav button:active{transform:scale(.95)}
+
+/* ── Main ── */
+.main{flex:1;overflow-y:auto;padding:16px;padding-bottom:calc(16px + var(--safe-bottom));-webkit-overflow-scrolling:touch}
+.panel{display:none;animation:fadeIn .25s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── Cards (Glassmorphism) ── */
+.card{
+  background:var(--bg2);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius);padding:16px;margin-bottom:12px;
+  box-shadow:var(--shadow);
+  transition:border-color .2s;
+}
+.card:hover{border-color:rgba(255,255,255,.12)}
+.card h3{font-size:.85rem;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.card h3 .badge{font-size:.65rem;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--bg);padding:2px 8px;border-radius:20px;font-weight:700}
+
+/* ── Forms ── */
+textarea,input,select{
+  width:100%;background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius);color:var(--text);padding:12px;
+  font-size:.9rem;font-family:inherit;resize:vertical;outline:none;transition:.2s;
+}
+textarea:focus,input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(116,185,255,.12)}
+textarea.editor{min-height:200px;line-height:1.7;font-size:1rem}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:10px 18px;
+  border:none;border-radius:var(--radius);font-size:.85rem;font-weight:600;
+  cursor:pointer;transition:all .2s ease;position:relative;overflow:hidden;
+}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--bg)}
+.btn-primary:hover{filter:brightness(1.1);box-shadow:0 4px 16px rgba(116,185,255,.3)}
+.btn-secondary{background:var(--glass);color:var(--text);border:1px solid var(--glass-border)}
+.btn-secondary:hover{background:rgba(116,185,255,.15);color:var(--accent);border-color:var(--accent)}
+.btn-danger{background:rgba(255,118,117,.2);color:var(--danger);border:1px solid rgba(255,118,117,.3)}
+.btn-danger:hover{background:var(--danger);color:var(--bg)}
+.btn-sm{padding:6px 12px;font-size:.75rem}
+.btn-block{width:100%;justify-content:center}
+
+/* ── Stats Bar ── */
+.stats-bar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.stat{
+  background:var(--glass);padding:8px 14px;border-radius:var(--radius);
+  font-size:.75rem;color:var(--text2);border:1px solid var(--glass-border);
+}
+.stat span{color:var(--accent);font-weight:700;margin-left:4px}
+
+/* ── Word Goal ── */
+.goal-bar{height:6px;background:var(--glass);border-radius:3px;margin:8px 0;overflow:hidden}
+.goal-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3));border-radius:3px;transition:width .5s ease}
+.goal-text{font-size:.7rem;color:var(--text2);text-align:right}
+
+/* ── Auto-save indicator ── */
+.autosave-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:6px;transition:.3s}
+.autosave-dot.saved{background:var(--accent3)}
+.autosave-dot.unsaved{background:var(--warn);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── Self-Check Highlights ── */
+.check-output{line-height:1.8;font-size:.95rem;padding:14px;background:var(--glass);border-radius:var(--radius);min-height:100px;white-space:pre-wrap;word-wrap:break-word;border:1px solid var(--glass-border)}
+.check-output .issue{background:rgba(255,118,117,.15);border-bottom:2px wavy var(--danger);padding:1px 3px;cursor:help;border-radius:3px;transition:.2s}
+.check-output .issue:hover{background:rgba(255,118,117,.3)}
+
+/* ── Vocab List ── */
+.vocab-item{
+  display:flex;flex-direction:column;gap:6px;padding:12px;
+  background:var(--glass);border-radius:var(--radius);margin-bottom:8px;
+  border-left:3px solid var(--accent);border:1px solid var(--glass-border);
+  border-left:3px solid var(--accent);transition:all .2s;
+}
+.vocab-item:hover{border-color:rgba(116,185,255,.3);background:rgba(255,255,255,.06)}
+.vocab-item .word{font-weight:700;font-size:1rem;color:var(--accent)}
+.vocab-item .def{font-size:.85rem;color:var(--text)}
+.vocab-item .example{font-size:.8rem;color:var(--text2);font-style:italic}
+.vocab-item .tags{display:flex;gap:4px;flex-wrap:wrap}
+.vocab-item .tag{font-size:.65rem;background:rgba(162,155,254,.15);color:var(--accent2);padding:2px 8px;border-radius:20px;border:1px solid rgba(162,155,254,.2)}
+.vocab-item .meta{display:flex;justify-content:space-between;align-items:center;font-size:.7rem;color:var(--text2)}
+
+/* ── Review Card ── */
+.review-card{text-align:center;padding:40px 20px}
+.review-card .word-display{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:20px}
+.review-card .def-display{font-size:1rem;color:var(--text);margin-bottom:10px;opacity:0;transition:.3s}
+.review-card .def-display.show{opacity:1}
+.review-card .example-display{font-size:.85rem;color:var(--text2);font-style:italic;opacity:0;transition:.3s}
+.review-card .example-display.show{opacity:1}
+.rating-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px;opacity:0;transition:.3s}
+.rating-btns.show{opacity:1}
+.rating-btns button{
+  padding:10px 16px;border:none;border-radius:var(--radius);cursor:pointer;
+  font-size:.8rem;font-weight:600;color:var(--bg);transition:all .2s;
+}
+.rating-btns button:active{transform:scale(.92)}
+.r0{background:#ff7675}.r1{background:#fdcb6e}.r2{background:#ffeaa7;color:#333}.r3{background:#74b9ff}.r4{background:#55efc4}.r5{background:#a29bfe}
+
+/* ── Prompt Card ── */
+.prompt-card{text-align:center;padding:30px;font-size:1.15rem;line-height:1.6;color:var(--text)}
+.prompt-card .prompt-num{font-size:.7rem;color:var(--text2);margin-bottom:12px}
+
+/* ── Chart ── */
+canvas{width:100%!important;height:200px!important;border-radius:var(--radius)}
+
+/* ── Streak ── */
+.streak-display{text-align:center;padding:20px}
+.streak-num{font-size:3rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.streak-label{font-size:.8rem;color:var(--text2)}
+
+/* ── Export ── */
+.export-box{
+  background:var(--glass);border:1px solid var(--glass-border);
+  border-radius:var(--radius);padding:12px;
+  font-family:'Consolas','Courier New',monospace;font-size:.75rem;
+  color:var(--accent3);white-space:pre-wrap;word-break:break-all;
+  max-height:300px;overflow-y:auto;user-select:all;
+}
+
+/* ── Empty State ── */
+.empty{text-align:center;padding:40px 20px;color:var(--text2);font-size:.85rem}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-100px);
+  background:var(--bg2);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  color:var(--text);padding:12px 24px;border-radius:var(--radius);
+  font-size:13px;font-weight:600;z-index:300;transition:transform .3s ease;
+  border:1px solid var(--glass-border);box-shadow:0 8px 32px rgba(0,0,0,.5);
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px}
+
+/* ── Modal ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  z-index:200;display:none;align-items:center;justify-content:center;padding:16px;
+}
+.modal-overlay.show{display:flex}
+.modal{
+  background:var(--bg2);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--glass-border);border-radius:var(--radius);
+  padding:20px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;
+  box-shadow:0 16px 48px rgba(0,0,0,.5);animation:modalIn .2s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+.modal h3{margin-bottom:14px;color:var(--accent)}
+.modal label{display:block;font-size:.75rem;color:var(--text2);margin:10px 0 4px}
+.modal .actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+
+/* ── Settings Panel ── */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--glass-border)}
+.setting-row:last-child{border:none}
+.setting-label{font-size:.85rem;color:var(--text)}
+.setting-sub{font-size:.7rem;color:var(--text2)}
+
+/* ── Responsive ── */
+@media(min-width:600px){
+  .main{padding:24px;max-width:720px;margin:0 auto}
+}
+@media(max-width:400px){
+  .nav button{padding:7px 10px;font-size:.75rem}
+  .card{padding:12px}
+  .header h1{font-size:.95rem}
+}
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Header -->
+<div class="header">
+  <h1>英語ジャーナル <span style="font-size:.6rem;-webkit-text-fill-color:var(--text2)">v2.0</span></h1>
+  <div class="header-right">
+    <span class="header-date" id="headerDate"></span>
+    <button class="header-btn" onclick="openSettingsModal()" title="設定">&#9881;</button>
+    <button class="header-btn" onclick="exportAllData()" title="エクスポート">&#8595;</button>
+    <button class="header-btn" onclick="importAllData()" title="インポート">&#8593;</button>
+  </div>
+</div>
+
+<!-- Navigation -->
+<div class="nav" id="nav">
+  <button data-panel="editor" class="active">&#9997; 執筆</button>
+  <button data-panel="check">&#128269; 添削</button>
+  <button data-panel="vocab">&#128218; 単語帳</button>
+  <button data-panel="review">&#128257; 復習</button>
+  <button data-panel="prompts">&#128161; お題</button>
+  <button data-panel="stats">&#128200; 統計</button>
+  <button data-panel="export">&#128196; Notion</button>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+
+  <!-- ===== Editor ===== -->
+  <div class="panel active" id="panel-editor">
+    <div class="card">
+      <h3>今日のジャーナル <span class="autosave-dot saved" id="autosaveDot" title="自動保存済み"></span></h3>
+      <textarea class="editor" id="editorText" placeholder="Write your English journal entry here...&#10;&#10;Tip: Your work is auto-saved every 30 seconds."></textarea>
+      <div class="stats-bar">
+        <div class="stat">Words:<span id="wordCount">0</span></div>
+        <div class="stat">Sentences:<span id="sentenceCount">0</span></div>
+        <div class="stat">Characters:<span id="charCount">0</span></div>
+      </div>
+      <div class="goal-bar"><div class="goal-fill" id="goalFill" style="width:0%"></div></div>
+      <div class="goal-text" id="goalText">0 / 100 words</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn btn-primary" onclick="saveEntry()">&#128190; 保存する</button>
+        <button class="btn btn-secondary" onclick="loadTodayEntry()">&#128197; 今日の読込</button>
+        <button class="btn btn-secondary" onclick="usePrompt()">&#128161; お題を使う</button>
+      </div>
+    </div>
+    <div class="card" id="savedEntriesCard">
+      <h3>保存済みエントリー <span class="badge" id="entryCountBadge">0</span></h3>
+      <div id="savedEntriesList"></div>
+    </div>
+  </div>
+
+  <!-- ===== Self-Check ===== -->
+  <div class="panel" id="panel-check">
+    <div class="card">
+      <h3>セルフチェック</h3>
+      <p style="font-size:.8rem;color:var(--text2);margin-bottom:12px">ジャーナルの文法チェックを実行します。よくあるパターンをハイライトします。</p>
+      <button class="btn btn-primary btn-block" onclick="runSelfCheck()">&#128269; チェック実行</button>
+    </div>
+    <div class="card" id="checkResultCard" style="display:none">
+      <h3>チェック結果 <span class="badge" id="issueCount">0</span></h3>
+      <div class="check-output" id="checkOutput"></div>
+      <div id="issueList" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- ===== Vocabulary ===== -->
+  <div class="panel" id="panel-vocab">
+    <div class="card">
+      <h3>単語を追加</h3>
+      <input id="vocabWord" placeholder="Word or phrase" style="margin-bottom:8px">
+      <input id="vocabDef" placeholder="Definition (日本語OK)" style="margin-bottom:8px">
+      <input id="vocabExample" placeholder="Example sentence" style="margin-bottom:8px">
+      <input id="vocabTags" placeholder="Tags (comma-separated)" style="margin-bottom:8px">
+      <button class="btn btn-primary" onclick="addVocab()">&#10133; 追加</button>
+    </div>
+    <div class="card">
+      <h3>単語帳 <span class="badge" id="vocabCountBadge">0</span></h3>
+      <input id="vocabSearch" placeholder="&#128269; 検索..." style="margin-bottom:12px" oninput="renderVocab()">
+      <div id="vocabList"></div>
+    </div>
+  </div>
+
+  <!-- ===== Review ===== -->
+  <div class="panel" id="panel-review">
+    <div class="card">
+      <h3>復習キュー（SM-2）</h3>
+      <div id="reviewArea">
+        <div class="empty">復習する単語がありません。単語帳に追加してください。</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>復習の統計</h3>
+      <div class="stats-bar">
+        <div class="stat">Due today:<span id="dueCount">0</span></div>
+        <div class="stat">Total learned:<span id="learnedCount">0</span></div>
+        <div class="stat">Mastered:<span id="masteredCount">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Prompts ===== -->
+  <div class="panel" id="panel-prompts">
+    <div class="card">
+      <h3>今日のお題</h3>
+      <div class="prompt-card" id="todayPrompt"></div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+        <button class="btn btn-secondary" onclick="prevPrompt()">&#9664; 前へ</button>
+        <button class="btn btn-primary" onclick="usePrompt()">&#9997; 使う</button>
+        <button class="btn btn-secondary" onclick="nextPrompt()">次へ &#9654;</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>お題一覧</h3>
+      <div id="promptList" style="max-height:400px;overflow-y:auto"></div>
+    </div>
+  </div>
+
+  <!-- ===== Statistics ===== -->
+  <div class="panel" id="panel-stats">
+    <div class="card">
+      <h3>連続記録</h3>
+      <div class="streak-display">
+        <div class="streak-num" id="streakNum">0</div>
+        <div class="streak-label">日間連続</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>日別ワード数（過去30日）</h3>
+      <canvas id="wordsChart"></canvas>
+    </div>
+    <div class="card">
+      <h3>総合統計</h3>
+      <div class="stats-bar">
+        <div class="stat">Total entries:<span id="totalEntries">0</span></div>
+        <div class="stat">Total words:<span id="totalWords">0</span></div>
+        <div class="stat">Vocab mastered:<span id="totalMastered">0</span></div>
+        <div class="stat">Avg words/day:<span id="avgWords">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Export ===== -->
+  <div class="panel" id="panel-export">
+    <div class="card">
+      <h3>Notionへエクスポート</h3>
+      <p style="font-size:.8rem;color:var(--text2);margin-bottom:12px">今日のジャーナルエントリーをNotion APIのcurlコマンドとして生成します。</p>
+      <label style="font-size:.75rem;color:var(--text2);margin-bottom:4px;display:block">Database ID:</label>
+      <input id="notionDbId" placeholder="Notion Database ID" style="margin-bottom:8px" value="">
+      <label style="font-size:.75rem;color:var(--text2);margin-bottom:4px;display:block">Token:</label>
+      <input id="notionToken" placeholder="Notion Integration Token" type="password" style="margin-bottom:8px" value="">
+      <label style="font-size:.75rem;color:var(--text2);margin-bottom:4px;display:block">添削文（optional）:</label>
+      <textarea id="correctedText" placeholder="Paste corrected version here (optional)" style="min-height:80px;margin-bottom:8px"></textarea>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="generateExport()">&#128196; コマンド生成</button>
+        <button class="btn btn-secondary" onclick="copyExport()">&#128203; コピー</button>
+        <button class="btn btn-secondary" onclick="saveNotionConfig()">&#128190; 設定保存</button>
+      </div>
+    </div>
+    <div class="card" id="exportResultCard" style="display:none">
+      <h3>curl コマンド</h3>
+      <div class="export-box" id="exportBox"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Vocab Edit Modal -->
+<div class="modal-overlay" id="editModal" onclick="if(event.target===this)closeEditModal()">
+  <div class="modal">
+    <h3>単語を編集</h3>
+    <input id="editWord" placeholder="Word">
+    <label>Definition</label>
+    <input id="editDef" placeholder="Definition">
+    <label>Example</label>
+    <input id="editExample" placeholder="Example sentence">
+    <label>Tags</label>
+    <input id="editTags" placeholder="Tags (comma-separated)">
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="closeEditModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveEditVocab()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeSettingsModal()">
+  <div class="modal">
+    <h3>&#9881; 設定</h3>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">1日の目標ワード数</div>
+        <div class="setting-sub">目標に対する進捗バーを表示</div>
+      </div>
+      <input id="settingGoal" type="number" min="10" max="2000" value="100" style="width:80px;text-align:center">
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">自動保存</div>
+        <div class="setting-sub">30秒ごとに自動保存</div>
+      </div>
+      <label style="margin:0">
+        <input id="settingAutosave" type="checkbox" checked style="width:auto;accent-color:var(--accent)">
+      </label>
+    </div>
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="closeSettingsModal()">閉じる</button>
+      <button class="btn btn-primary" onclick="saveSettings()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   DATA LAYER
+   ═══════════════════════════════════════════════════════════════════════════ */
+const LS = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem('ej_' + k)) ?? d } catch { return d } },
+  set(k, v) { try{ localStorage.setItem('ej_' + k, JSON.stringify(v)) }catch(e){ showToast('保存に失敗しました'); } }
+};
+
+function today() { return new Date().toISOString().slice(0, 10) }
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);
+}
+function todayJP() { const d = new Date(); return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}` }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SETTINGS
+   ═══════════════════════════════════════════════════════════════════════════ */
+function loadSettings() {
+  const s = LS.get('settings', { goal: 100, autosave: true });
+  document.getElementById('settingGoal').value = s.goal || 100;
+  document.getElementById('settingAutosave').checked = s.autosave !== false;
+  return s;
+}
+
+function saveSettings() {
+  const s = {
+    goal: parseInt(document.getElementById('settingGoal').value) || 100,
+    autosave: document.getElementById('settingAutosave').checked
+  };
+  LS.set('settings', s);
+  closeSettingsModal();
+  updateCounts();
+  showToast('設定を保存しました');
+}
+
+function openSettingsModal() {
+  loadSettings();
+  document.getElementById('settingsModal').classList.add('show');
+}
+function closeSettingsModal() {
+  document.getElementById('settingsModal').classList.remove('show');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════════════════════════════════════ */
+document.getElementById('headerDate').textContent = todayJP();
+
+document.getElementById('nav').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-panel]');
+  if (!btn) return;
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+  if (btn.dataset.panel === 'review') startReview();
+  if (btn.dataset.panel === 'stats') renderStats();
+  if (btn.dataset.panel === 'prompts') renderPrompts();
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   1. JOURNAL EDITOR
+   ═══════════════════════════════════════════════════════════════════════════ */
+const editorText = document.getElementById('editorText');
+let autosaveTimer = null;
+let isDirty = false;
+
+editorText.addEventListener('input', () => {
+  updateCounts();
+  isDirty = true;
+  updateAutosaveDot(false);
+  // Debounced auto-save
+  clearTimeout(autosaveTimer);
+  const s = LS.get('settings', { autosave: true });
+  if (s.autosave !== false) {
+    autosaveTimer = setTimeout(() => {
+      if (isDirty && editorText.value.trim()) {
+        saveEntryQuiet();
+      }
+    }, 30000);
+  }
+});
+
+function updateAutosaveDot(saved) {
+  const dot = document.getElementById('autosaveDot');
+  if (saved) {
+    dot.className = 'autosave-dot saved';
+    dot.title = '自動保存済み';
+  } else {
+    dot.className = 'autosave-dot unsaved';
+    dot.title = '未保存の変更あり';
+  }
+}
+
+function updateCounts() {
+  const text = editorText.value.trim();
+  const words = text ? text.split(/\s+/).length : 0;
+  const sentences = text ? (text.match(/[.!?]+/g) || []).length : 0;
+  document.getElementById('wordCount').textContent = words;
+  document.getElementById('sentenceCount').textContent = sentences;
+  document.getElementById('charCount').textContent = text.length;
+
+  // Goal progress
+  const s = LS.get('settings', { goal: 100 });
+  const goal = s.goal || 100;
+  const pct = Math.min(100, Math.round((words / goal) * 100));
+  document.getElementById('goalFill').style.width = pct + '%';
+  document.getElementById('goalText').textContent = `${words} / ${goal} words${pct >= 100 ? ' - Goal reached!' : ''}`;
+}
+
+function saveEntryQuiet() {
+  const text = editorText.value.trim();
+  if (!text) return;
+  const entries = LS.get('entries', {});
+  const key = today();
+  entries[key] = { text, words: text.split(/\s+/).length, time: Date.now() };
+  LS.set('entries', entries);
+  isDirty = false;
+  updateAutosaveDot(true);
+}
+
+function saveEntry() {
+  const text = editorText.value.trim();
+  if (!text) return;
+  const entries = LS.get('entries', {});
+  const key = today();
+  entries[key] = { text, words: text.split(/\s+/).length, time: Date.now() };
+  LS.set('entries', entries);
+  isDirty = false;
+  updateAutosaveDot(true);
+  updateStreak();
+  renderSavedEntries();
+  showToast('保存しました');
+}
+
+function loadTodayEntry() {
+  const entries = LS.get('entries', {});
+  const e = entries[today()];
+  if (e) { editorText.value = e.text; updateCounts(); isDirty = false; updateAutosaveDot(true); }
+  else showToast('今日のエントリーはまだありません');
+}
+
+function renderSavedEntries() {
+  const entries = LS.get('entries', {});
+  const keys = Object.keys(entries).sort().reverse();
+  document.getElementById('entryCountBadge').textContent = keys.length;
+  const list = document.getElementById('savedEntriesList');
+  if (!keys.length) { list.innerHTML = '<div class="empty">エントリーなし</div>'; return; }
+  list.innerHTML = keys.slice(0, 20).map(k => {
+    const e = entries[k];
+    const preview = e.text.slice(0, 80) + (e.text.length > 80 ? '...' : '');
+    return `<div class="vocab-item" style="border-left-color:var(--accent2);cursor:pointer" onclick="loadEntry('${k}')">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="word" style="color:var(--accent2)">${k}</span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:.7rem;color:var(--text2)">${e.words} words</span>
+          <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteEntry('${k}')" style="padding:3px 8px;font-size:.65rem">削除</button>
+        </span>
+      </div>
+      <div class="def">${esc(preview)}</div>
+    </div>`;
+  }).join('');
+}
+
+function loadEntry(key) {
+  const entries = LS.get('entries', {});
+  if (entries[key]) { editorText.value = entries[key].text; updateCounts(); }
+}
+function deleteEntry(key) {
+  if(!confirm('このエントリーを削除しますか？'))return;
+  const entries = LS.get('entries', {});
+  delete entries[key];
+  LS.set('entries', entries);
+  renderSavedEntries();
+  showToast('エントリーを削除しました');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2. SELF-CHECK
+   ═══════════════════════════════════════════════════════════════════════════ */
+const grammarRules = [
+  { re: /\b(a)\s+(a|e|i|o|u)\w+/gi, msg: 'Use "an" before vowel sounds', label: 'article' },
+  { re: /\b(an)\s+([^aeiou\s])\w+/gi, msg: 'Use "a" before consonant sounds', label: 'article' },
+  { re: /\b(I|he|she|it)\s+(are|were|have been)\b/gi, msg: 'Subject-verb agreement', label: 'agreement' },
+  { re: /\b(they|we|you)\s+(is|was|has been)\b/gi, msg: 'Subject-verb agreement', label: 'agreement' },
+  { re: /\b(much)\s+\w+(s)\b/gi, msg: '"much" with plural noun - use "many"?', label: 'quantifier' },
+  { re: /\b(many)\s+\w+[^s\s]\b/gi, msg: '"many" with singular noun - use "much"?', label: 'quantifier' },
+  { re: /\b(yesterday|last\s+\w+)\b.*?\b(is|are|have|has|do|does|will)\b/gi, msg: 'Past time marker with present tense', label: 'tense' },
+  { re: /\b(tomorrow|next\s+\w+)\b.*?\b(was|were|did|had)\b/gi, msg: 'Future time marker with past tense', label: 'tense' },
+  { re: /\b(informations|advices|furnitures|equipments|knowledges|homeworks|researches)\b/gi, msg: 'Uncountable noun used as plural', label: 'plural' },
+  { re: /\b(childs|mans|womans|mouses|foots|tooths|gooses)\b/gi, msg: 'Irregular plural error', label: 'plural' },
+  { re: /\b(more\s+\w+er|most\s+\w+est)\b/gi, msg: 'Double comparative/superlative', label: 'comparison' },
+  { re: /\b(could|would|should|might|must|will|shall|can|may)\s+\w+ed\b/gi, msg: 'Modal + past tense? Use base form', label: 'modal' },
+  { re: /\b(did)\s+\w+ed\b/gi, msg: '"did" + past tense? Use base form', label: 'tense' },
+  { re: /\b(doesn't|does not|didn't|did not)\s+\w+(s|es)\b/gi, msg: 'Negation with inflected verb', label: 'negation' },
+  { re: /(?<=[.!?]\s+|^)i\b/gm, msg: 'Lowercase "i" - should be "I"', label: 'capitalization' },
+  { re: /\bi\b(?=\s+(am|was|have|had|will|would|could|should|shall|can|may|might|do|did|don't|won't|can't|need|think|want|like|love|hate|know|feel|see|hear|go|went|come|came|make|made|get|got|believe|hope|wish|try|tried|used|use|eat|ate|drink|drank|sleep|slept|work|worked|live|lived)\b)/g, msg: 'Lowercase "i" - should be "I"', label: 'capitalization' },
+  { re: /\b(alot)\b/gi, msg: '"alot" should be "a lot"', label: 'spelling' },
+  { re: /\b(its)\s+(a|an|the)\b/gi, msg: '"its" should be "it\'s" (it is)?', label: 'contraction' },
+  { re: /\b(their)\s+(is|are|was|were)\b/gi, msg: '"their" should be "there"?', label: 'homophone' },
+  { re: /\b(your)\s+(a|an|the|going|welcome|right)\b/gi, msg: '"your" should be "you\'re"?', label: 'homophone' },
+  { re: /\b(then)\s+(I|he|she|we|they)\b/gi, msg: '"then" should be "than" (comparison)?', label: 'homophone' },
+  { re: /[.!?]\s*[a-z]/g, msg: 'Sentence should start with uppercase', label: 'capitalization' },
+  { re: /\b(would of|could of|should of|must of|might of)\b/gi, msg: 'Should be "would have", "could have", etc.', label: 'grammar' },
+  { re: /\b(supposably)\b/gi, msg: '"supposably" should be "supposedly"', label: 'spelling' },
+  { re: /\b(irregardless)\b/gi, msg: '"irregardless" should be "regardless"', label: 'spelling' },
+  { re: /\b(definately|definatly|defintely)\b/gi, msg: 'Spelling: "definitely"', label: 'spelling' },
+  { re: /\b(occured|occuring)\b/gi, msg: 'Spelling: "occurred" / "occurring"', label: 'spelling' },
+  { re: /\b(recieve|beleive|acheive)\b/gi, msg: 'i before e except after c: "receive", "believe", "achieve"', label: 'spelling' },
+  { re: /\b(truely|judgement|arguement)\b/gi, msg: 'Spelling error', label: 'spelling' },
+];
+
+function runSelfCheck() {
+  const text = editorText.value.trim();
+  if (!text) { showToast('ジャーナルを先に書いてください'); return; }
+
+  const issues = [];
+  for (const rule of grammarRules) {
+    let m;
+    const re = new RegExp(rule.re.source, rule.re.flags);
+    while ((m = re.exec(text)) !== null) {
+      issues.push({ start: m.index, end: m.index + m[0].length, text: m[0], msg: rule.msg, label: rule.label });
+    }
+  }
+
+  // Remove overlapping issues (keep first)
+  issues.sort((a, b) => a.start - b.start);
+  const filtered = [];
+  let lastEnd = -1;
+  for (const iss of issues) {
+    if (iss.start >= lastEnd) { filtered.push(iss); lastEnd = iss.end; }
+  }
+
+  // Build highlighted HTML
+  let html = '';
+  let pos = 0;
+  for (const iss of filtered) {
+    html += esc(text.slice(pos, iss.start));
+    html += `<span class="issue" title="${esc(iss.msg)}">${esc(text.slice(iss.start, iss.end))}</span>`;
+    pos = iss.end;
+  }
+  html += esc(text.slice(pos));
+
+  document.getElementById('checkOutput').innerHTML = html;
+  document.getElementById('issueCount').textContent = filtered.length;
+  document.getElementById('checkResultCard').style.display = 'block';
+
+  // Issue summary list
+  const listEl = document.getElementById('issueList');
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div style="color:var(--accent3);font-size:.85rem;text-align:center;padding:12px">No issues found! Great job!</div>';
+  } else {
+    listEl.innerHTML = filtered.map(i =>
+      `<div style="font-size:.8rem;padding:8px 0;border-bottom:1px solid var(--glass-border);color:var(--text2)">
+        <span style="color:var(--danger);font-weight:600">[${i.label}]</span> "${esc(i.text)}" - ${esc(i.msg)}
+      </div>`
+    ).join('');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3. VOCABULARY BANK
+   ═══════════════════════════════════════════════════════════════════════════ */
+let editingVocabId = null;
+
+function addVocab() {
+  const word = document.getElementById('vocabWord').value.trim();
+  const def = document.getElementById('vocabDef').value.trim();
+  const example = document.getElementById('vocabExample').value.trim();
+  const tags = document.getElementById('vocabTags').value.split(',').map(t => t.trim()).filter(Boolean);
+  if (!word) { showToast('単語を入力してください'); return; }
+
+  const vocab = LS.get('vocab', []);
+  vocab.push({
+    id: Date.now(),
+    word, def, example, tags,
+    added: today(),
+    // SM-2 fields
+    interval: 0,
+    repetition: 0,
+    efactor: 2.5,
+    nextReview: today()
+  });
+  LS.set('vocab', vocab);
+  document.getElementById('vocabWord').value = '';
+  document.getElementById('vocabDef').value = '';
+  document.getElementById('vocabExample').value = '';
+  document.getElementById('vocabTags').value = '';
+  renderVocab();
+  showToast(`"${word}" を追加しました`);
+}
+
+function renderVocab() {
+  const vocab = LS.get('vocab', []);
+  const search = document.getElementById('vocabSearch').value.toLowerCase();
+  const filtered = vocab.filter(v =>
+    v.word.toLowerCase().includes(search) ||
+    v.def.toLowerCase().includes(search) ||
+    v.tags.some(t => t.toLowerCase().includes(search))
+  );
+  document.getElementById('vocabCountBadge').textContent = vocab.length;
+  const list = document.getElementById('vocabList');
+  if (!filtered.length) { list.innerHTML = '<div class="empty">単語がありません</div>'; return; }
+  list.innerHTML = filtered.sort((a, b) => b.id - a.id).map(v => `
+    <div class="vocab-item">
+      <div class="word">${esc(v.word)}</div>
+      ${v.def ? `<div class="def">${esc(v.def)}</div>` : ''}
+      ${v.example ? `<div class="example">"${esc(v.example)}"</div>` : ''}
+      <div class="tags">${v.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
+      <div class="meta">
+        <span>Added: ${v.added} | EF: ${v.efactor.toFixed(1)} | Rep: ${v.repetition}</span>
+        <span style="display:flex;gap:4px">
+          <button class="btn btn-sm btn-secondary" onclick="openEditModal(${v.id})">編集</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteVocab(${v.id})">削除</button>
+        </span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteVocab(id) {
+  if (!confirm('削除しますか?')) return;
+  const vocab = LS.get('vocab', []).filter(v => v.id !== id);
+  LS.set('vocab', vocab);
+  renderVocab();
+  showToast('単語を削除しました');
+}
+
+function openEditModal(id) {
+  editingVocabId = id;
+  const v = LS.get('vocab', []).find(v => v.id === id);
+  if (!v) return;
+  document.getElementById('editWord').value = v.word;
+  document.getElementById('editDef').value = v.def;
+  document.getElementById('editExample').value = v.example;
+  document.getElementById('editTags').value = v.tags.join(', ');
+  document.getElementById('editModal').classList.add('show');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('show');
+  editingVocabId = null;
+}
+
+function saveEditVocab() {
+  const vocab = LS.get('vocab', []);
+  const idx = vocab.findIndex(v => v.id === editingVocabId);
+  if (idx === -1) return;
+  vocab[idx].word = document.getElementById('editWord').value.trim();
+  vocab[idx].def = document.getElementById('editDef').value.trim();
+  vocab[idx].example = document.getElementById('editExample').value.trim();
+  vocab[idx].tags = document.getElementById('editTags').value.split(',').map(t => t.trim()).filter(Boolean);
+  LS.set('vocab', vocab);
+  closeEditModal();
+  renderVocab();
+  showToast('単語を更新しました');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4. REVIEW QUEUE (SM-2)
+   ═══════════════════════════════════════════════════════════════════════════ */
+let reviewQueue = [];
+let reviewIdx = 0;
+
+function getDueVocab() {
+  const vocab = LS.get('vocab', []);
+  const now = today();
+  return vocab.filter(v => v.nextReview <= now);
+}
+
+function startReview() {
+  reviewQueue = getDueVocab();
+  reviewIdx = 0;
+  document.getElementById('dueCount').textContent = reviewQueue.length;
+  const vocab = LS.get('vocab', []);
+  document.getElementById('learnedCount').textContent = vocab.length;
+  document.getElementById('masteredCount').textContent = vocab.filter(v => v.repetition >= 5).length;
+  showReviewCard();
+}
+
+function showReviewCard() {
+  const area = document.getElementById('reviewArea');
+  if (reviewIdx >= reviewQueue.length) {
+    area.innerHTML = `<div class="empty" style="color:var(--accent3)">
+      ${reviewQueue.length === 0 ? '復習する単語がありません。単語帳に追加してください。' : '全て復習完了! お疲れ様でした。'}
+    </div>`;
+    return;
+  }
+  const v = reviewQueue[reviewIdx];
+  area.innerHTML = `
+    <div class="review-card">
+      <div style="font-size:.7rem;color:var(--text2);margin-bottom:8px">${reviewIdx + 1} / ${reviewQueue.length}</div>
+      <div class="word-display">${esc(v.word)}</div>
+      <button class="btn btn-secondary" onclick="revealAnswer()" id="revealBtn">意味を表示</button>
+      <div class="def-display" id="revDef">${esc(v.def || '(no definition)')}</div>
+      <div class="example-display" id="revExample">${v.example ? '"' + esc(v.example) + '"' : ''}</div>
+      <div class="rating-btns" id="ratingBtns">
+        <button class="r0" onclick="rateCard(0)">完全忘れ<br><small>0</small></button>
+        <button class="r1" onclick="rateCard(1)">不正解<br><small>1</small></button>
+        <button class="r2" onclick="rateCard(2)">ぎりぎり<br><small>2</small></button>
+        <button class="r3" onclick="rateCard(3)">難しい<br><small>3</small></button>
+        <button class="r4" onclick="rateCard(4)">正解<br><small>4</small></button>
+        <button class="r5" onclick="rateCard(5)">楽勝<br><small>5</small></button>
+      </div>
+    </div>`;
+}
+
+function revealAnswer() {
+  document.getElementById('revDef').classList.add('show');
+  document.getElementById('revExample').classList.add('show');
+  document.getElementById('ratingBtns').classList.add('show');
+  document.getElementById('revealBtn').style.display = 'none';
+}
+
+function rateCard(quality) {
+  const vocab = LS.get('vocab', []);
+  const v = vocab.find(x => x.id === reviewQueue[reviewIdx].id);
+  if (!v) { reviewIdx++; showReviewCard(); return; }
+
+  // SM-2 Algorithm
+  let { efactor, interval, repetition } = v;
+  if (quality < 3) {
+    repetition = 0;
+    interval = 0;
+  } else {
+    if (repetition === 0) interval = 1;
+    else if (repetition === 1) interval = 6;
+    else interval = Math.round(interval * efactor);
+    repetition++;
+  }
+  efactor = efactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+  if (efactor < 1.3) efactor = 1.3;
+
+  v.efactor = efactor;
+  v.interval = interval;
+  v.repetition = repetition;
+
+  const next = new Date();
+  next.setDate(next.getDate() + Math.max(interval, 1));
+  v.nextReview = next.toISOString().slice(0, 10);
+
+  LS.set('vocab', vocab);
+  reviewIdx++;
+  showReviewCard();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5. WRITING PROMPTS (55)
+   ═══════════════════════════════════════════════════════════════════════════ */
+const PROMPTS = [
+  // Daily Life (10)
+  "Describe your morning routine in detail. What do you do first? What do you eat?",
+  "What did you do today? Write about the most memorable moment.",
+  "Describe your favorite place to relax. Why does it make you feel comfortable?",
+  "Write about a meal you had recently. Describe the taste, texture, and how it made you feel.",
+  "What is your workspace like? Describe the objects around you right now.",
+  "Write about your commute or daily walk. What do you see along the way?",
+  "Describe a conversation you had today. What was it about?",
+  "What is one thing you are grateful for today? Explain why.",
+  "Write about a hobby you enjoy. How did you discover it?",
+  "Describe your ideal weekend. What would you do from morning to night?",
+  // Opinions (10)
+  "Do you think social media has more benefits or drawbacks? Support your opinion.",
+  "What skill do you think everyone should learn? Why?",
+  "Is it better to live in a big city or a small town? Explain your view.",
+  "Should students study abroad? What are the advantages and disadvantages?",
+  "Do you prefer working from home or in an office? Give reasons.",
+  "What is the most important quality in a friend? Explain with an example.",
+  "Is technology making us more or less connected? Share your thoughts.",
+  "Should people focus on saving money or enjoying life? Why?",
+  "What is more important for success: talent or hard work? Defend your answer.",
+  "Do you think reading books is still important in the digital age?",
+  // Descriptions (10)
+  "Describe the weather outside your window right now. Use at least five adjectives.",
+  "Describe a person you admire. What do they look like? What makes them special?",
+  "Write about a beautiful place you have visited. Paint a picture with words.",
+  "Describe an object on your desk. What does it look like, feel like, and why is it there?",
+  "Describe the sounds you can hear right now. Are they pleasant or disturbing?",
+  "Write about a season you love. Describe its colors, smells, and feelings.",
+  "Describe your favorite piece of clothing. Why do you like it?",
+  "Describe a busy street scene. What are the people doing?",
+  "Write about an animal you find fascinating. Describe its appearance and behavior.",
+  "Describe a photo or painting you like. What story does it tell?",
+  // Stories (10)
+  "Write a short story that begins with: 'The letter arrived on a rainy Tuesday.'",
+  "Continue this story: 'When I opened the door, I found a package I never ordered.'",
+  "Write about a time you were surprised. What happened?",
+  "Tell the story of a journey you took. Where did you go? What happened?",
+  "Write about a challenge you overcame. How did you feel afterward?",
+  "Create a story about two strangers who meet at a coffee shop.",
+  "Write about a childhood memory that still makes you smile.",
+  "Tell a story about a time you tried something new. Was it successful?",
+  "Write about a misunderstanding that turned out to be funny.",
+  "Create a short story with the theme: 'second chances'.",
+  // Advanced (10)
+  "If you could change one thing about your country's education system, what would it be?",
+  "Write a letter to your future self, ten years from now.",
+  "Explain a concept from your field of work or study to someone with no background.",
+  "Write a review of the last book, movie, or game you experienced.",
+  "Describe how a piece of technology works, as if explaining to someone from the 1800s.",
+  "Write about the biggest lesson you learned this year.",
+  "Compare two cultures you know about. What are the similarities and differences?",
+  "Write about a problem in your community and propose a solution.",
+  "If you could have dinner with any historical figure, who would it be and why?",
+  "Describe your dream project. What would you create if you had unlimited time and resources?",
+  // Bonus (5)
+  "Write about a mistake you made and what it taught you.",
+  "Describe your relationship with language learning. Why do you study English?",
+  "Write about a tradition or custom that is important to you.",
+  "What would you do if you had a completely free day with no responsibilities?",
+  "Write a journal entry from the perspective of an object in your room."
+];
+
+let promptIdx = 0;
+
+function getPromptOfDay() {
+  const d = new Date();
+  const dayOfYear = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
+  return dayOfYear % PROMPTS.length;
+}
+
+function renderPrompts() {
+  promptIdx = getPromptOfDay();
+  showPrompt();
+  const list = document.getElementById('promptList');
+  list.innerHTML = PROMPTS.map((p, i) => {
+    const cat = i < 10 ? 'Daily Life' : i < 20 ? 'Opinion' : i < 30 ? 'Description' : i < 40 ? 'Story' : i < 50 ? 'Advanced' : 'Bonus';
+    return `<div style="padding:8px 0;border-bottom:1px solid var(--glass-border);font-size:.8rem;cursor:pointer;color:${i === promptIdx ? 'var(--accent)' : 'var(--text2)'};transition:.2s" onclick="promptIdx=${i};showPrompt()" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='${i === promptIdx ? 'var(--accent)' : 'var(--text2)'}'">
+      <span style="color:var(--accent2);font-size:.65rem">[${cat}]</span> #${i + 1} ${esc(p.slice(0, 60))}${p.length > 60 ? '...' : ''}
+    </div>`;
+  }).join('');
+}
+
+function showPrompt() {
+  const cat = promptIdx < 10 ? 'Daily Life' : promptIdx < 20 ? 'Opinion' : promptIdx < 30 ? 'Description' : promptIdx < 40 ? 'Story' : promptIdx < 50 ? 'Advanced' : 'Bonus';
+  document.getElementById('todayPrompt').innerHTML = `
+    <div class="prompt-num">#${promptIdx + 1} / ${PROMPTS.length} - ${cat}</div>
+    ${esc(PROMPTS[promptIdx])}
+  `;
+}
+
+function prevPrompt() { promptIdx = (promptIdx - 1 + PROMPTS.length) % PROMPTS.length; showPrompt(); }
+function nextPrompt() { promptIdx = (promptIdx + 1) % PROMPTS.length; showPrompt(); }
+
+function usePrompt() {
+  if (typeof promptIdx === 'undefined') promptIdx = getPromptOfDay();
+  const prompt = PROMPTS[promptIdx];
+  editorText.value = `[Prompt: ${prompt}]\n\n`;
+  updateCounts();
+  // Switch to editor
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-panel="editor"]').classList.add('active');
+  document.getElementById('panel-editor').classList.add('active');
+  editorText.focus();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   6. STATISTICS
+   ═══════════════════════════════════════════════════════════════════════════ */
+function updateStreak() {
+  const entries = LS.get('entries', {});
+  let streak = 0;
+  const d = new Date();
+  for (let i = 0; i < 365; i++) {
+    const key = d.toISOString().slice(0, 10);
+    if (entries[key]) streak++;
+    else if (i > 0) break; // Allow today to be missing
+    d.setDate(d.getDate() - 1);
+  }
+  LS.set('streak', streak);
+}
+
+function renderStats() {
+  const entries = LS.get('entries', {});
+  const vocab = LS.get('vocab', []);
+  const streak = LS.get('streak', 0);
+  const keys = Object.keys(entries);
+
+  document.getElementById('streakNum').textContent = streak;
+  document.getElementById('totalEntries').textContent = keys.length;
+  document.getElementById('totalWords').textContent = keys.reduce((s, k) => s + (entries[k].words || 0), 0);
+  document.getElementById('totalMastered').textContent = vocab.filter(v => v.repetition >= 5).length;
+  const days = keys.length || 1;
+  document.getElementById('avgWords').textContent = Math.round(keys.reduce((s, k) => s + (entries[k].words || 0), 0) / days);
+
+  renderChart(entries);
+}
+
+function renderChart(entries) {
+  const canvas = document.getElementById('wordsChart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+
+  // Last 30 days
+  const data = [];
+  const labels = [];
+  const d = new Date();
+  for (let i = 29; i >= 0; i--) {
+    const dd = new Date(d);
+    dd.setDate(dd.getDate() - i);
+    const key = dd.toISOString().slice(0, 10);
+    data.push(entries[key]?.words || 0);
+    labels.push(String(dd.getDate()));
+  }
+
+  const max = Math.max(...data, 1);
+  const padL = 36, padR = 10, padT = 16, padB = 28;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const barW = chartW / data.length;
+
+  // Background
+  ctx.fillStyle = '#0a0a16';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,.06)';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + (chartH / 4) * i;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    ctx.fillStyle = '#8888aa';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(Math.round(max - (max / 4) * i), padL - 4, y + 3);
+  }
+
+  // Bars with rounded top (fallback-safe)
+  for (let i = 0; i < data.length; i++) {
+    const x = padL + i * barW + barW * 0.15;
+    const w = barW * 0.7;
+    const h = (data[i] / max) * chartH;
+    const y = padT + chartH - h;
+
+    if (data[i] > 0) {
+      const grad = ctx.createLinearGradient(x, y, x, padT + chartH);
+      grad.addColorStop(0, '#74b9ff');
+      grad.addColorStop(1, '#a29bfe');
+      ctx.fillStyle = grad;
+      const r = Math.min(3, w / 2, h / 2);
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(x, y, w, h, [r, r, 0, 0]);
+      } else {
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h);
+        ctx.lineTo(x, y + h);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+      }
+      ctx.fill();
+    }
+
+    // Label
+    if (i % 3 === 0 || i === data.length - 1) {
+      ctx.fillStyle = '#8888aa';
+      ctx.font = '8px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(labels[i], padL + i * barW + barW / 2, H - 8);
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   7. EXPORT TO NOTION
+   ═══════════════════════════════════════════════════════════════════════════ */
+function saveNotionConfig() {
+  LS.set('notionDbId', document.getElementById('notionDbId').value);
+  LS.set('notionToken', document.getElementById('notionToken').value);
+  showToast('Notion設定を保存しました');
+}
+
+function loadNotionConfig() {
+  const dbId = LS.get('notionDbId', '');
+  const token = LS.get('notionToken', '');
+  if (dbId) document.getElementById('notionDbId').value = dbId;
+  if (token) document.getElementById('notionToken').value = token;
+}
+
+function generateExport() {
+  const original = editorText.value.trim();
+  if (!original) { showToast('ジャーナルを先に書いてください'); return; }
+
+  const corrected = document.getElementById('correctedText').value.trim();
+  const dbId = document.getElementById('notionDbId').value.trim();
+  const token = document.getElementById('notionToken').value.trim();
+
+  if (!dbId || !token) { showToast('Database IDとTokenを入力してください'); return; }
+
+  const title = `English Journal ${todayJP()}`;
+
+  // Build Notion blocks
+  const blocks = [
+    {
+      type: 'heading_2',
+      heading_2: { rich_text: [{ type: 'text', text: { content: 'Original' } }] }
+    },
+    {
+      type: 'quote',
+      quote: { rich_text: [{ type: 'text', text: { content: original } }] }
+    }
+  ];
+
+  if (corrected) {
+    blocks.push({
+      type: 'heading_2',
+      heading_2: { rich_text: [{ type: 'text', text: { content: 'Corrected' } }] }
+    });
+    blocks.push({
+      type: 'callout',
+      callout: {
+        rich_text: [{ type: 'text', text: { content: corrected } }],
+        icon: { emoji: '\u2705' },
+        color: 'green_background'
+      }
+    });
+  }
+
+  // Vocabulary words from today
+  const vocab = LS.get('vocab', []).filter(v => v.added === today());
+  if (vocab.length > 0) {
+    blocks.push({
+      type: 'heading_2',
+      heading_2: { rich_text: [{ type: 'text', text: { content: 'Key Vocabulary' } }] }
+    });
+    for (const v of vocab) {
+      blocks.push({
+        type: 'bulleted_list_item',
+        bulleted_list_item: {
+          rich_text: [
+            { type: 'text', text: { content: v.word }, annotations: { bold: true } },
+            { type: 'text', text: { content: v.def ? ` - ${v.def}` : '' } }
+          ]
+        }
+      });
+    }
+  }
+
+  const payload = {
+    parent: { database_id: dbId },
+    properties: {
+      Name: { title: [{ text: { content: title } }] }
+    },
+    children: blocks
+  };
+
+  const payloadStr = JSON.stringify(payload, null, 2);
+
+  const curl = `curl -X POST "https://api.notion.com/v1/pages" \\
+  -H "Authorization: Bearer ${token}" \\
+  -H "Content-Type: application/json" \\
+  -H "Notion-Version: 2022-06-28" \\
+  -d '${payloadStr.replace(/'/g, "'\\''")}'`;
+
+  document.getElementById('exportBox').textContent = curl;
+  document.getElementById('exportResultCard').style.display = 'block';
+}
+
+function copyExport() {
+  const text = document.getElementById('exportBox').textContent;
+  if (!text) { showToast('先にコマンドを生成してください'); return; }
+  navigator.clipboard.writeText(text).then(() => showToast('コピーしました'));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UTILS
+   ═══════════════════════════════════════════════════════════════════════════ */
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KEYBOARD SHORTCUTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  // Ctrl+S to save
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveEntry();
+  }
+  // Ctrl+Enter to run self-check
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    runSelfCheck();
+    // Switch to check panel
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('[data-panel="check"]').classList.add('active');
+    document.getElementById('panel-check').classList.add('active');
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function init() {
+  loadSettings();
+  loadTodayEntryQuiet();
+  renderSavedEntries();
+  renderVocab();
+  loadNotionConfig();
+  updateStreak();
+})();
+
+function loadTodayEntryQuiet() {
+  const entries = LS.get('entries', {});
+  const e = entries[today()];
+  if (e) { editorText.value = e.text; updateCounts(); isDirty = false; updateAutosaveDot(true); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DATA EXPORT/IMPORT
+   ═══════════════════════════════════════════════════════════════════════════ */
+function exportAllData(){
+  const data={
+    entries: LS.get('entries',{}),
+    vocab: LS.get('vocab',[]),
+    streak: LS.get('streak',0),
+    settings: LS.get('settings',{}),
+    notionDbId: LS.get('notionDbId',''),
+    exportDate: new Date().toISOString()
+  };
+  const json=JSON.stringify(data,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='english_journal_'+today()+'.json';
+  a.click();URL.revokeObjectURL(url);
+  showToast('エクスポート完了');
+}
+function importAllData(){
+  const input=document.createElement('input');
+  input.type='file';input.accept='.json';
+  input.onchange=function(){
+    const reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        const imported=JSON.parse(e.target.result);
+        if(!confirm('現在のデータを上書きしますか？'))return;
+        if(imported.entries) LS.set('entries',imported.entries);
+        if(imported.vocab) LS.set('vocab',imported.vocab);
+        if(imported.streak!==undefined) LS.set('streak',imported.streak);
+        if(imported.settings) LS.set('settings',imported.settings);
+        renderSavedEntries();renderVocab();loadTodayEntryQuiet();
+        showToast('インポート完了');
+      }catch(err){showToast('JSONの解析に失敗しました');}
+    };
+    reader.readAsText(input.files[0]);
+  };
+  input.click();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SERVICE WORKER REGISTRATION
+   ═══════════════════════════════════════════════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
